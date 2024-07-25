@@ -1,0 +1,10 @@
+<resources>
+    <string name="app_name">iMapit</string>
+    <string name="map_type">Map Type</string>
+    <string name="current_location">Current Location</string>
+    <string name="go_to_current_location">Go to Current Location</string>
+    <string name="remember_location">Remember Location</string>
+    <string name="navigate">Walk to Car</string>
+    <string name="forget_location">Forget Car Location</string>
+    <string name="car_location">Car Location</string>
+</resources>
