@@ -21,6 +21,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -47,6 +48,7 @@ import com.google.maps.android.compose.CameraPositionState
 import com.google.maps.android.compose.DragState
 import com.google.maps.android.compose.GoogleMap
 import com.google.maps.android.compose.MapProperties
+import com.google.maps.android.compose.MapUiSettings
 import com.google.maps.android.compose.MapType
 import com.google.maps.android.compose.MarkerInfoWindowContent
 import com.google.maps.android.compose.MarkerState
@@ -55,7 +57,10 @@ import com.google.maps.android.compose.streetview.StreetView
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.text.font.FontWeight
+import com.google.android.gms.maps.model.Marker
 import com.google.android.gms.maps.model.StreetViewSource
+import com.google.maps.android.compose.Marker
 import kotlinx.coroutines.withContext
 import tony.imapit.BuildConfig.MAPS_API_KEY
 import tony.imapit.R
@@ -85,8 +90,17 @@ fun GoogleMapDisplay(
         // ##START 070-current-map-type
         var currentMapType by remember { mutableStateOf(MapType.HYBRID) }
 
+//        var mapProperties by remember(currentMapType) {
+//            mutableStateOf(MapProperties(mapType = currentMapType))
+//        }
         var mapProperties by remember(currentMapType) {
-            mutableStateOf(MapProperties(mapType = currentMapType))
+            mutableStateOf(MapProperties(
+                isBuildingEnabled = true,
+                isIndoorEnabled = true,
+                isTrafficEnabled = true,
+                isMyLocationEnabled = true,
+                mapType = currentMapType),
+            )
         }
 
 //        var mapProperties by remember {
@@ -121,6 +135,13 @@ fun GoogleMapDisplay(
         var currentShowStreetView by remember { mutableStateOf(false) }
         var streetViewResultReturn by remember { mutableStateOf(Status.NOT_FOUND) }
         var previousLatLng by remember { mutableStateOf<LatLng?>(null) }
+
+        // Point of Interest (POI) Location marker
+        var poiLocationName by remember { mutableStateOf(String ?: "") }
+        var poiLocation by remember { mutableStateOf<LatLng?>(null) }
+        var poiIcon by remember { mutableStateOf<BitmapDescriptor?>(null) }
+        var onMapLongClickFlag by remember { mutableStateOf(false) }
+
 
         // ##START 150-jump-to-bounds
         LaunchedEffect(key1 = currentLocation) {
@@ -261,9 +282,12 @@ fun GoogleMapDisplay(
                                         )
                                     carIcon =
                                         context.loadBitmapDescriptor(
-                                            //                                            R.drawable.ic_car
                                             R.drawable.ic_car
                                         )
+                                    poiIcon =
+                                        context.loadBitmapDescriptor(
+                                        R.drawable.ic_ufo_flying
+                                    )
                                 }
                                 // ##END
                             },
@@ -278,6 +302,14 @@ fun GoogleMapDisplay(
                                 .fillMaxWidth()
                                 .weight(1f),
                             // ##END
+                            onMapLongClick ={
+                                onMapLongClickFlag = true
+                            },
+                            onPOIClick = {
+                                onMapLongClickFlag = false
+                                poiLocationName = it.name
+                                poiLocation = it.latLng
+                            }
                             // ##END
                             // ##END
                         ) {
@@ -292,6 +324,14 @@ fun GoogleMapDisplay(
                                     title = stringResource(
                                         id = R.string.current_location
                                     ),
+                                    //snippet = "Latitude: ${it.position.latitude}, Longitude: ${it.position.longitude}",
+                                    content = {
+                                        Column {
+                                            Text(text = stringResource( id = R.string.current_location), fontWeight = FontWeight.Bold)
+                                            Text(text = "Latitude: ${currentLocationState.position.latitude}")
+                                            Text(text = "Longitude: ${currentLocationState.position.longitude}")
+                                        }
+                                    },
                                     onClick = {
                                         //currentShowStreetView = true
                                         currentLocationState.showInfoWindow()
@@ -311,8 +351,7 @@ fun GoogleMapDisplay(
                                     icon = carIcon,
                                     anchor = Offset(0.5f, 0.5f),
                                     title = stringResource(
-//                                        id = R.string.car_location
-                                          id = R.string.current_location
+                                        id = R.string.car_location
                                     ),
                                     onClick = {
                                         carState.showInfoWindow()
@@ -321,7 +360,24 @@ fun GoogleMapDisplay(
                                     onInfoWindowClick = { carShowStreetView = true },
                                 )
                             }
+
+                            if(!onMapLongClickFlag) {
+                                poiLocation?.let {
+                                    val poiState = rememberMarkerState(position = it)
+                                    MarkerInfoWindowContent(
+                                        state = poiState,
+//                                        icon = poiIcon,
+                                        anchor = Offset(0.5f, 0.5f),
+                                        title = poiLocationName.toString(),
+                                        onClick = {
+                                            poiState.showInfoWindow()
+                                            true
+                                        },
+                                    )
+                                }
+                            }
                         } // End of GoogleMap()
+
 
                         if(carShowStreetView || currentShowStreetView) {
                             if (carShowStreetView)
@@ -331,7 +387,7 @@ fun GoogleMapDisplay(
                                     currentLocationState?.position?.let {
                                         LatLng(
                                             it.latitude,
-                                            it.latitude
+                                            it.longitude
                                         )
                                     }
                                 streetViewResultReturn = StreetViewValidator(currentLoc)
@@ -344,10 +400,7 @@ fun GoogleMapDisplay(
                             }
 
                             if (carShowStreetViewChanged ) {
-                                if (streetViewResultReturn == Status.ZERO_RESULTS) {
-                                    carShowStreetView = false
-                                    currentShowStreetView = false
-                                } else if (streetViewResultReturn == Status.OK) {
+                                if (streetViewResultReturn == Status.OK) {
                                     if (carLatLng != previousLatLng) {
                                         // Render Street View for carLatLng
                                         streetViewResultReturn = StreetViewValidator(carLatLng)
@@ -355,6 +408,11 @@ fun GoogleMapDisplay(
                                         carShowStreetView = false
                                     }
                                 }
+                            }
+                            // Return/exit if street view not available
+                            if (streetViewResultReturn == Status.ZERO_RESULTS) {
+                                carShowStreetView = false
+                                currentShowStreetView = false
                             }
                             BackHandler {
                                 carShowStreetView = false
@@ -385,6 +443,7 @@ fun GoogleMapDisplay(
         ) // End of Scaffold
     } // End of with(LocalDensity.current)
 }
+
 
 @Composable
 fun StreetViewValidator(targetLatLng: LatLng?) : Status{
@@ -425,4 +484,38 @@ fun StreetViewValidator(targetLatLng: LatLng?) : Status{
     }
 
     return streetViewResult
+}
+
+
+//fun onLocationUpdated(poiLocation: String, latitude: Double, longitude: Double) {
+
+//@Composable
+fun onLocationUpdated(poiLocation: String, position: LatLng) {
+// marker for car location
+//    MarkerInfoWindowContent{
+//
+//    }
+
+
+//    carLatLng?.let {
+//        carState.position = it
+//        MarkerInfoWindowContent(
+//            state = carState,
+//            // ##START 130-draggable
+//            draggable = true,
+//            // ##END
+//            icon = carIcon,
+//            anchor = Offset(0.5f, 0.5f),
+//            title = stringResource(
+//                id = R.string.car_location
+//            ),
+//            onClick = {
+//                carState.showInfoWindow()
+//                true
+//            },
+//            onInfoWindowClick = { carShowStreetView = true },
+//        )
+//    }
+
+
 }
