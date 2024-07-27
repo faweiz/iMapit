@@ -43,9 +43,9 @@ fun MapTypeSelector(
         // ##START 070-text-field
         TextField(
             value = currentValue.name,
-            label = {
-                Text(text = stringResource(id = R.string.map_type))
-            },
+//            label = {
+//                Text(text = stringResource(id = R.string.map_type))
+//            },
             readOnly = true,    // don't allow user to type
             onValueChange = {}, // unused
             trailingIcon = {

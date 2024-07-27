@@ -11,7 +11,9 @@ activityCompose = "1.9.0"
 composeBom = "2024.05.00"
 
 secrets = "2.0.1"
-maps-compose = "3.0.0" # bug in 3.1.0 - map only takes up 50% of column
+#maps-compose = "3.0.0" # bug in 3.1.0 - map only takes up 50% of column
+maps-compose = "4.0.0" # bug in 3.1.0 - map only takes up 50% of column
+maps-compose-utils = "3.8.3"
 location-services = "21.0.1"
 icons-extended = "1.6.0-alpha06" # needed to bump to version that has source
 datastore-preferences = "1.0.0"
@@ -38,6 +40,7 @@ androidx-material3 = { group = "androidx.compose.material3", name = "material3" 
 
 maps-compose = { group = "com.google.maps.android", name = "maps-compose", version.ref = "maps-compose" }
 maps-compose-utils = { group = "com.google.maps.android", name = "maps-compose-utils", version.ref = "maps-compose" }
+maps-compose-widgets = { group = "com.google.maps.android", name = "maps-compose-widgets", version.ref = "maps-compose" }
 location-services = { group = "com.google.android.gms", name = "play-services-location", version.ref = "location-services" }
 icons-extended = { group = "androidx.compose.material", name = "material-icons-extended", version.ref = "icons-extended" }
 datastore-preferences = { group = "androidx.datastore", name = "datastore-preferences", version.ref = "datastore-preferences" }

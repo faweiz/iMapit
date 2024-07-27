@@ -4,7 +4,6 @@ plugins {
     alias(libs.plugins.secrets)
 }
 
-
 kotlin {
     jvmToolchain(17)
 }
@@ -35,12 +34,16 @@ android {
             )
         }
     }
+
     buildFeatures {
         compose = true
+        buildConfig = true
     }
+
     composeOptions {
         kotlinCompilerExtensionVersion = "1.5.14"
     }
+
     packaging {
         resources {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
@@ -54,6 +57,7 @@ dependencies {
     implementation(libs.runtime.compose)
     implementation(libs.maps.compose)
     implementation(libs.maps.compose.utils)
+    implementation(libs.maps.compose.widgets)
     implementation(libs.lifecycle.runtime.compose)
     implementation(libs.bundles.retrofit)
     implementation(libs.androidx.core.ktx)

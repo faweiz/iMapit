@@ -9,6 +9,7 @@ import android.net.Uri
 import android.os.Bundle
 import android.os.Looper
 import android.provider.Settings
+import android.util.Log
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -17,6 +18,7 @@ import androidx.activity.viewModels
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
+import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.core.app.ActivityCompat
@@ -29,7 +31,10 @@ import com.google.android.gms.location.LocationRequest
 import com.google.android.gms.location.LocationResult
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.Priority
+import com.google.android.gms.maps.StreetViewPanoramaOptions
+import com.google.android.gms.maps.model.LatLng
 import com.google.maps.android.compose.rememberCameraPositionState
+import com.google.maps.android.compose.streetview.StreetView
 import tony.imapit.car.CarViewModel
 import tony.imapit.map.GoogleMapDisplay
 
@@ -166,6 +171,8 @@ class MainActivity : ComponentActivity() {
                     val carLatLng by
                     viewModel.carLatLng.collectAsStateWithLifecycle(initialValue = null)
 
+//                    Greeting("Android")
+
                     // ##START 040-factor-map
                     GoogleMapDisplay(
                         currentLocation = currentLocation,
@@ -182,3 +189,86 @@ class MainActivity : ComponentActivity() {
         }
     }
 }
+
+
+
+
+
+
+
+
+
+
+//import android.os.Bundle
+//import android.util.Log
+//import androidx.activity.ComponentActivity
+//import androidx.activity.compose.setContent
+//import androidx.compose.foundation.layout.Box
+//import androidx.compose.foundation.layout.fillMaxSize
+//import androidx.compose.material3.*
+//import androidx.compose.runtime.*
+//import androidx.compose.ui.Alignment
+//import androidx.compose.ui.Modifier
+//import androidx.compose.ui.tooling.preview.Preview
+//import tony.imapit.ui.theme.IMapitTheme
+//import com.google.android.gms.maps.StreetViewPanoramaOptions
+//import com.google.android.gms.maps.model.LatLng
+//import com.google.maps.android.compose.streetview.StreetView
+//
+//class MainActivity : ComponentActivity() {
+//    private val TAG = MainActivity::class.java.simpleName
+//    override fun onCreate(savedInstanceState: Bundle?) {
+//        super.onCreate(savedInstanceState)
+//        setContent {
+//            IMapitTheme {
+//                // A surface container using the 'background' color from the theme
+//                Surface(
+//                    modifier = Modifier.fillMaxSize(),
+//                    color = MaterialTheme.colorScheme.background
+//                ) {
+//                    Log.d("Street", "Android")
+//                    Greeting("Android")
+////                    MapScreen()
+//                }
+//            }
+//        }
+//    }
+//}
+
+@Composable
+fun Greeting(name: String) {
+//    val singapore = LatLng(39.139801, -76.742143)
+//    Log.d("Street", "Greeting")
+//    Log.d("Street", "Greeting 3")
+//    Box(Modifier.fillMaxSize(), Alignment.BottomStart) {
+//        StreetView(
+//            Modifier.matchParentSize(),
+//            streetViewPanoramaOptionsFactory = {
+//                StreetViewPanoramaOptions().position(singapore)
+//            },
+//        )
+//    }
+    val singapore = LatLng(39.139801, -76.742143)
+    Log.d("Street", "Greeting 5")
+    StreetView(
+        streetViewPanoramaOptionsFactory = {
+            StreetViewPanoramaOptions().position(singapore)
+        },
+    )
+}
+
+
+//@Composable
+//fun MapScreen() {
+//    val atasehir = LatLng(40.9971, 29.1007)
+//
+//    StreetView(
+//        streetViewPanoramaOptionsFactory = {
+//            StreetViewPanoramaOptions().position(atasehir)
+//        },
+//        isPanningGesturesEnabled = true,
+//        isStreetNamesEnabled = true,
+//        isUserNavigationEnabled = true,
+//        isZoomGesturesEnabled = true
+//    )
+//}
