@@ -7,4 +7,8 @@
     <string name="navigate">Walk to Car</string>
     <string name="forget_location">Forget Car Location</string>
     <string name="car_location">Car Location</string>
+
+    <string name="search_location">Search Location</string>
+    <string name="map_type_selector">Map Type Selector</string>
+
 </resources>
