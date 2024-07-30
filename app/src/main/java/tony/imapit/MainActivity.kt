@@ -178,6 +178,7 @@ class MainActivity : ComponentActivity() {
                     locationSearchViewModel.placesClient = Places.createClient(applicationContext)
                     locationSearchViewModel.geoCoder = Geocoder(applicationContext)
 
+
                     // ##START 040-factor-map
                     GoogleMapDisplay(
                         currentLocation = currentLocation,
@@ -187,7 +188,7 @@ class MainActivity : ComponentActivity() {
                         onClearCarLocation = viewModel::clearCarLocation,
                         onMoveCar = viewModel::setCarLocation,
                         modifier = Modifier.fillMaxSize(),
-                        searchViewModel = locationSearchViewModel, // Pass ViewModel
+                        searchViewModel = locationSearchViewModel, // Pass locationSearchViewModel
                     )
                     // ##END
                 }

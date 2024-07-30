@@ -79,11 +79,15 @@ dependencies {
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
 
-    //Hilt dependency
+    // Hilt dependency
     implementation("com.google.dagger:hilt-android:2.48")
     kapt("com.google.dagger:hilt-android-compiler:2.48")
     kapt("androidx.hilt:hilt-compiler:1.0.0")
     implementation("androidx.hilt:hilt-navigation-compose:1.1.0-rc01")
+
+    // dependency used Coil for OpenWeather API icon
+    implementation("io.coil-kt:coil-compose:2.4.0")
+
 }
 
 kapt {

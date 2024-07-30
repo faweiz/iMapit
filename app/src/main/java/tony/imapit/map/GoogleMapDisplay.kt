@@ -1,6 +1,7 @@
 package tony.imapit.map
 
 import android.content.Intent
+import android.graphics.Bitmap
 import android.location.Location
 import android.net.Uri
 import android.util.Log
@@ -63,6 +64,7 @@ import androidx.compose.ui.text.font.FontWeight
 import com.google.android.gms.maps.model.StreetViewSource
 import kotlinx.coroutines.withContext
 import tony.imapit.BuildConfig.MAPS_API_KEY
+import tony.imapit.BuildConfig.OPEN_WEATHER_API_KEY
 import tony.imapit.R
 import tony.imapit.car.CarTopBar
 
@@ -70,8 +72,21 @@ import tony.imapit.search.LocationSearchViewModel
 import androidx.compose.material3.Surface
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.size
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.ui.graphics.Color
+import com.google.android.gms.maps.model.Marker
+import com.google.maps.android.compose.MarkerState
+import tony.imapit.weather.*
+import tony.imapit.weather.startWeatherReporting
+import android.graphics.Bitmap.*
+import androidx.compose.foundation.Image
+import androidx.compose.ui.res.painterResource
+import coil.compose.AsyncImage
+import coil.compose.LocalImageLoader
+import coil.compose.rememberAsyncImagePainter
+import coil.compose.rememberImagePainter
+import coil.request.ImageRequest
 
 @Composable
 fun GoogleMapDisplay(
@@ -80,22 +95,13 @@ fun GoogleMapDisplay(
     cameraPositionState: CameraPositionState,
     onSetCarLocation: () -> Unit,
     onClearCarLocation: () -> Unit,
-    // ##START 130-event
     onMoveCar: (LatLng) -> Unit,
-    // ##END
     modifier: Modifier,
-    searchViewModel: LocationSearchViewModel // Injecting LocationSearchViewModel
+    searchViewModel: LocationSearchViewModel, // Injecting LocationSearchViewModel
 ) {
-    // ##START 150-density-padding
     with(LocalDensity.current) {
         val boundsPadding = 48.dp.toPx()
-        // ##END
-
-        // ##START 060-marker-state-holder
         var mapLoaded by remember { mutableStateOf(false) }
-        // ##END
-
-        // ##START 070-current-map-type
         var currentMapType by remember { mutableStateOf(MapType.HYBRID) }
 
         // Google Map Properties
@@ -109,25 +115,22 @@ fun GoogleMapDisplay(
             )
         }
 
-        // ##START 080-current-location-state
+        // current-location-state
         val currentLocationState = currentLocation?.let {
                 LatLng(it.latitude, it.longitude)
             }?.let {
                 rememberMarkerState(position = it)
             }
-        // ##END
-
         val carState = rememberMarkerState("car")
 
-        // ##START 090-icon-state
+        // icon-state
         val context = LocalContext.current
         var currentLocationIcon by
         remember { mutableStateOf<BitmapDescriptor?>(null) }
         var carIcon by remember { mutableStateOf<BitmapDescriptor?>(null) }
         val scope = rememberCoroutineScope()
-        // ##END
 
-        // ##START 090-jump-to-location
+        // jump-to-location
         var initialBoundsSet by remember { mutableStateOf(false) }
 
         // Street View variables
@@ -182,8 +185,7 @@ fun GoogleMapDisplay(
             }
         }
 
-
-        // ##START 130-snapshot-flow
+        // snapshot-flow
         LaunchedEffect(true) {
             var dragged = false
 
@@ -201,8 +203,6 @@ fun GoogleMapDisplay(
                     }
                 }
         }
-        // ##END
-
 
         Scaffold(
             topBar = {
@@ -211,7 +211,7 @@ fun GoogleMapDisplay(
                     carLatLng = carLatLng,
                     onSetCarLocation = onSetCarLocation,
                     onClearCarLocation = onClearCarLocation,
-                    // ##START 140-navigate
+                    // Navigate to car button
                     onWalkToCar = {
                         currentLocation?.let { curr ->
                             carLatLng?.let { car ->
@@ -241,7 +241,7 @@ fun GoogleMapDisplay(
                             Toast.LENGTH_LONG
                         ).show()
                     },
-                    // ##END
+                    // Current Location button
                     onGoToCurrentLocation = {
                         currentLocation?.let { curr ->
                             scope.launch {
@@ -258,27 +258,26 @@ fun GoogleMapDisplay(
                             Toast.LENGTH_LONG
                         ).show()
                     },
+                    // Search button
                     onSearchBar = {
                         onSearchBarFlag = true
                     },
+                    // Map Type Selector button
                     onMapTypeSelector = {
                         onMapTypeSelectorFlag = true
                     },
                 )
             },
             content = { paddingValues ->
-
                 Box(
-                    // ##START 060-top-level-modifier
+                    // top-level-modifier
                     modifier = modifier.padding(paddingValues),
-                    // ##END
                 ) {
-
-                    // ##START 070-column
+                    // column
                     Column(
                         modifier = Modifier.fillMaxSize()
                     ) {
-
+                        // Map Type Selector
                         if (onMapTypeSelectorFlag) {
                             MapTypeSelector(
                                 currentValue = currentMapType,
@@ -289,14 +288,11 @@ fun GoogleMapDisplay(
                                 onMapTypeSelectorFlag = false
                             }
                         }
-
-                        // ##END
-
+                        // Google Map
                         GoogleMap(
-                            // ##START 050-use-camera-position-state
+                            // use-camera-position-state
                             cameraPositionState = cameraPositionState,
-                            // ##END
-                            // ##START 060-set-mapLoaded
+                            // set-mapLoaded
                             onMapLoaded = {
                                 mapLoaded = true
                                 // ##START 090-load-icon
@@ -314,19 +310,13 @@ fun GoogleMapDisplay(
                                             R.drawable.ic_ufo_flying
                                         )
                                 }
-                                // ##END
                             },
-                            // ##END
-                            // ##START 070-pass-properties
+                            // pass-properties
                             properties = mapProperties,
-                            // ##END
-                            // ##START 040-map-modifier
-                            // ##START 060-map-modifier-change
-                            // ##START 070-map-weight
+                            // map-modifier
                             modifier = Modifier
-                                .fillMaxWidth()
-                                .weight(1f),
-                            // ##END
+                                .fillMaxWidth() // map-modifier-change
+                                .weight(1f), // map-weight
                             onMapClick = {
                                 scope.launch {
                                     cameraPositionState.animate(CameraUpdateFactory.newLatLng(it))
@@ -343,16 +333,16 @@ fun GoogleMapDisplay(
                                 onSearchBarFlag = false
                                 // Map Type
                                 onMapTypeSelectorFlag = false
+                                // Weather
+                                if(weatherReportFlag) weatherReportFlag = false
                             },
                             onPOIClick = {
                                 poiClickFlag = false
                                 poiLocationName = it.name
                                 poiLocation = it.latLng
                             }
-                            // ##END
-                            // ##END
                         ) {
-                            // ##START 080-marker for current location
+                            // Marker for current location
                             currentLocationState?.let {
                                 var currentLocationAddress by mutableStateOf("")
                                 val currLatLng =
@@ -362,45 +352,55 @@ fun GoogleMapDisplay(
                                     currLatLng.longitude,
                                     1
                                 )
-                                // Marker for current location
+                                // Get current location address
                                 currentLocationAddress = address?.get(0)?.getAddressLine(0).toString()
                                 MarkerInfoWindowContent(
                                     state = currentLocationState,
-                                    // ##START 090-icon-offset
                                     icon = currentLocationIcon,
                                     anchor = Offset(0.5f, 0.5f),
-                                    // ##END
                                     title = stringResource(
                                         id = R.string.current_location
                                     ),
-                                    //snippet = "Latitude: ${it.position.latitude}, Longitude: ${it.position.longitude}",
-                                    content = {
-                                        Column {
-                                            Text(
-                                                text = stringResource(id = R.string.current_location),
-                                                fontWeight = FontWeight.Bold
-                                            )
-                                            Text(text = "Latitude: ${currentLocationState.position.latitude}")
-                                            Text(text = "Longitude: ${currentLocationState.position.longitude}")
-                                            Text(text = "Address: $currentLocationAddress")
-                                        }
-                                    },
                                     onClick = {
                                         currentLocationState.showInfoWindow()
                                         true
                                     },
                                     onInfoWindowClick = { currentShowStreetViewFlag = true },
-                                )
+                                ){
+                                    startWeatherReporting(currLatLng.latitude, currLatLng.longitude, OPEN_WEATHER_API_KEY)
+                                    Box(
+                                        modifier = Modifier
+                                            .background(
+                                                color = MaterialTheme.colorScheme.onPrimary,
+                                                shape = RoundedCornerShape(35.dp, 35.dp, 35.dp, 35.dp),
+                                            ),
+                                    ) {
+                                        Column(
+                                            modifier = Modifier.padding(16.dp),
+                                            horizontalAlignment = Alignment.Start
+                                        ) {
+                                            Text(text = "Address: $currentLocationAddress", fontWeight = FontWeight.Bold)
+                                            if(weatherReport != null) {
+                                                Text(text = "City: ${weatherReport?.name}")
+                                                Text(text = "Longitude: ${weatherReport?.coord?.lon}")
+                                                Text(text = "Latitude: ${weatherReport?.coord?.lat}")
+                                                Spacer(modifier = Modifier.height(8.dp))
+                                                Text(text = "$weatherInfo")
+                                            }else{
+                                                Text(text = "Longitude: ${currLatLng.longitude}")
+                                                Text(text = "Latitude: ${currLatLng.latitude}")
+                                                Text(text = "Loading... Weather Info")
+                                            }
+                                        }
+                                    }
+                                }
                             }
-
                             // Marker for car location
                             carLatLng?.let {
                                 carState.position = it
                                 MarkerInfoWindowContent(
                                     state = carState,
-                                    // ##START 130-draggable
                                     draggable = true,
-                                    // ##END
                                     icon = carIcon,
                                     anchor = Offset(0.5f, 0.5f),
                                     title = stringResource(
@@ -413,14 +413,12 @@ fun GoogleMapDisplay(
                                     onInfoWindowClick = { carShowStreetViewFlag = true },
                                 )
                             }
-
                             // Marker for POI
                             if (!poiClickFlag) {
                                 poiLocation?.let {
                                     val poiState = rememberMarkerState(position = it)
                                     MarkerInfoWindowContent(
                                         state = poiState,
-//                                        icon = poiIcon,
                                         anchor = Offset(0.5f, 0.5f),
                                         title = poiLocationName.toString(),
                                         onClick = {
@@ -557,7 +555,7 @@ fun GoogleMapDisplay(
                                                         onSearchBarFlag = false
                                                         searchChangeFlag = true
                                                         searchLatLongFlag = true
-//                                                        initialBoundsSet = true
+                                                        if(weatherReportFlag) weatherReportFlag = false
                                                     }
                                             ) {
                                                 Text(result.address)
@@ -581,7 +579,7 @@ fun GoogleMapDisplay(
                     } // End of if (onSearchBarFlag)
                 } // End of Box
 
-                // ##START 060-progress-spinner
+                // Loading progress-spinner if map isn't loaded
                 if (!mapLoaded) {
                     AnimatedVisibility(
                         visible = true,
@@ -595,7 +593,7 @@ fun GoogleMapDisplay(
                                 .wrapContentSize()
                         )
                     }
-                } // ##END of if (!mapLoaded)
+                } // End of if (!mapLoaded)
             } // End of content
         ) // End of Scaffold
     } // End of with(LocalDensity.current)

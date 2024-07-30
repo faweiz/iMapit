@@ -73,7 +73,6 @@ class LocationSearchViewModel @Inject constructor() : ViewModel() {
         placesClient.fetchPlace(request).addOnSuccessListener {
             if (it != null) {
                 searchLatLong = it.place.latLng!!
-                Log.d("TAG", "searchLatLong 6: $searchLatLong")
             }
         }.addOnFailureListener {
             it.printStackTrace()
